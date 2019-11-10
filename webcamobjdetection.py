@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import time
+import os
 
 # load yolo
 net = cv2.dnn.readNet("D:/OpenCV Practice/yolov3-tiny.weights","D:/OpenCV Practice/yolov3-tiny.cfg")
@@ -13,13 +14,24 @@ outputlayers = [layer_names[i[0]-1] for i in net.getUnconnectedOutLayers()]
 colors = np.random.uniform(0, 255, size = (len(classes), 3))
 #loading images
 cap = cv2.VideoCapture(0)
+time2=None
+t1=cv2.getTickCount()
+cnt = 0
+#if not os.path.exists('./images'):
+    #os.mkdir('./images')
 starting_time = time.time()
 frame_id = 0
 font = cv2.FONT_HERSHEY_COMPLEX_SMALL
 while True:
     _, frame = cap.read()
     frame_id += 1
+    if _:
+        #cv2.imwrite('./images/%d.jpg' % cnt, frame)
+        cnt+=1
+    else:
+        break
 
+        
     height, width, channels = frame.shape
 
     #detecting objects
@@ -53,7 +65,10 @@ while True:
                 boxes.append([x, y, w, h])
                 confidences.append(float(confidence))
                 class_ids.append(class_id)
-
+                t2=cv2.getTickCount()
+                time2=(t2-t1)/(cv2.getTickFrequency())
+                             
+    
     indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.4, 0.3)
     for i in range(len(boxes)):
         if i in indexes:
@@ -61,6 +76,7 @@ while True:
             label = str(classes[class_ids[i]])
             confidence = confidences[i]
             color = colors[class_ids[i]]
+            print(label," found at ",time2," seconds ")
             cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
             cv2.rectangle(frame, (x, y), (x + w, y + 30), color, -1)
             cv2.putText(frame, label + " " + str(round(confidence, 2)), (x, y + 30), font, 3, (255, 255, 255), 3)
@@ -72,6 +88,5 @@ while True:
     key  = cv2.waitKey(1)
     if key == 27:
         break
-
 cap.release()
 cv2.destroyAllWindows()
